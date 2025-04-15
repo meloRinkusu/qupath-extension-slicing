@@ -3,6 +3,7 @@ package qupath.ext.template.ui;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Spinner;
+import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.VBox;
 import qupath.ext.template.DemoExtension;
 import qupath.fx.dialogs.Dialogs;
@@ -63,6 +64,26 @@ public class InterfaceController extends VBox {
                 resources.getString("run.message")
         );
     }
+
+    @FXML
+    private ToggleButton tileModeButton;
+
+    // Stocker l’état activé/désactivé du mode tuile
+    //private boolean tileModeActive = false;
+
+    public void initialize() {
+        tileModeButton.selectedProperty().bindBidirectional(DemoExtension.tileModeActive);
+    }
+
+    /*@FXML
+    private void toggleTileMode() {
+        DemoExtension.tileModeActive.set(tileModeButton.isSelected());
+    }*/
+
+    // Méthode d’accès (optionnel si besoin depuis d’autres classes)
+    /*public boolean isTileModeActive() {
+        return tileModeActive;
+    }*/
 
 
 }

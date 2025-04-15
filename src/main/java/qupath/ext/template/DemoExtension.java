@@ -3,7 +3,9 @@ package qupath.ext.template;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.Property;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Scene;
+import javafx.scene.control.CheckMenuItem;
 import javafx.scene.control.MenuItem;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
@@ -105,6 +107,12 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 	 */
 	private Stage stage;
 
+	public static final BooleanProperty tileModeActive = new SimpleBooleanProperty(false);
+
+	public static boolean isTileModeActive() {
+		return tileModeActive.get();
+	}
+
 	@Override
 	public void installExtension(QuPathGUI qupath) {
 		if (isInstalled) {
@@ -113,7 +121,8 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 		}
 		isInstalled = true;
 		addPreferenceToPane(qupath);
-		addMenuItem(qupath);
+		//addMenuItem(qupath);
+		addTuileMenuItem(qupath);
 		System.out.println("Hello depuis mon extension !");
 		new TileClickListener().registerClickListener();
 	}
@@ -148,6 +157,20 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 		menuItem.disableProperty().bind(enableExtensionProperty.not());
 		menu.getItems().add(menuItem);
 	}
+
+	private void addTuileMenuItem(QuPathGUI qupath) {
+		var menu = qupath.getMenu("Extensions>" + EXTENSION_NAME, true);
+		// Toggle menu item pour le mode tuile
+		CheckMenuItem tileModeMenuItem = new CheckMenuItem("Activer Mode Tuile");
+		tileModeMenuItem.selectedProperty().bindBidirectional(tileModeActive);
+		tileModeMenuItem.disableProperty().bind(enableExtensionProperty.not());
+
+
+		menu.getItems().add(tileModeMenuItem);
+	}
+
+
+
 
 	/**
 	 * Demo showing how to create a new stage with a JavaFX FXML interface.

@@ -6,11 +6,13 @@ import javafx.scene.layout.StackPane;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
+import qupath.ext.template.ui.InterfaceController;
 import qupath.lib.gui.QuPathGUI;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.gui.viewer.ViewerManager;
 import qupath.lib.gui.prefs.PathPrefs;
 
+import qupath.lib.objects.PathObject;
 import qupath.lib.objects.PathObjects;
 import qupath.lib.roi.ROIs;
 import qupath.lib.objects.classes.PathClassFactory;
@@ -22,6 +24,7 @@ public class TileClickListener {
 
     QuPathGUI qupath = QuPathGUI.getInstance();
     ViewerManager viewerManager = qupath.getViewerManager();
+
 
     //double tileHeight = 224;
     double tileHeight = PathPrefs.gridSpacingYProperty().get();
@@ -35,6 +38,10 @@ public class TileClickListener {
         if (activeViewer != null) {
             StackPane stackPane = (StackPane)activeViewer.getView();
             stackPane.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
+
+                if (!DemoExtension.isTileModeActive())
+                    return;
+
                 double xPane = e.getX();
                 double yPane = e.getY();
 
@@ -55,15 +62,35 @@ public class TileClickListener {
                 //System.out.println("Tile indices: (" + tileX + ", " + tileY + ")");
                 //System.out.println("Tile origin in image: " + tileOriginX + ", " + tileOriginY);
 
-                //var tileRect = new Rectangle2D.Double(tileOriginX, tileOriginY, tileWidth, tileHeight);
+                var tileRect = new Rectangle2D.Double(tileOriginX, tileOriginY, tileWidth, tileHeight);
 
-                var roi = ROIs.createRectangleROI(tileOriginX, tileOriginY, tileWidth, tileHeight, null);
+                // Chercher une annotation existante dans cette tuile
+                var existing = getCurrentHierarchy().getFlattenedObjectList(null).stream()
+                        .filter(anno -> anno.getROI() != null)
+                        .filter(anno -> tileRect.intersects(
+                                anno.getROI().getBoundsX(),
+                                anno.getROI().getBoundsY(),
+                                anno.getROI().getBoundsWidth(),
+                                anno.getROI().getBoundsHeight()))
+                        .findFirst();
 
-                var annotation = PathObjects.createAnnotationObject(roi);
-                annotation.setPathClass(PathClassFactory.getPathClass("SelectedTile"));
+                // Si on en trouve une, la sélectionner
+                if (existing.isPresent()) {
+                    getCurrentHierarchy().getSelectionModel().setSelectedObject(existing.get());
+                    System.out.println("Annotation sélectionnée !");
+                }
+                else {
+                        var roi = ROIs.createRectangleROI(tileOriginX, tileOriginY, tileWidth, tileHeight, null);
 
-                // Ajouter à la hiérarchie
-                getCurrentHierarchy().addPathObject(annotation);
+                        var annotation = PathObjects.createAnnotationObject(roi);
+                        annotation.setPathClass(PathClassFactory.getPathClass("SelectedTile"));
+
+                        // Ajouter à la hiérarchie
+                        getCurrentHierarchy().addPathObject(annotation);
+                        getCurrentHierarchy().getSelectionModel().setSelectedObject(annotation);
+                        System.out.println("Nouvelle annotation créée et sélectionnée !");
+                    }
+
 
                 // Redessiner la vue
                 activeViewer.repaint();
