@@ -32,3 +32,20 @@ dependencies {
     testImplementation(libs.junit)
 
 }
+
+repositories {
+    mavenCentral()
+    // Autres dépôts si nécessaire
+}
+
+tasks.register<Copy>("copyJarToQuPath") {
+    doNotTrackState("Copying the jar file to QuPath extensions folder does not require state tracking") // Désactive le tracking d’état pour cette tâche
+    dependsOn("shadowJar")
+    from(layout.buildDirectory.dir("libs"))
+    into("C:/Users/Admin/QuPath/v0.5/extensions/")
+    include("qupath-extension-template-0.1.0-SNAPSHOT.jar")
+}
+
+tasks.named("build") {
+    finalizedBy("copyJarToQuPath")
+}

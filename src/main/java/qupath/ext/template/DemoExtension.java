@@ -114,6 +114,8 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 		isInstalled = true;
 		addPreferenceToPane(qupath);
 		addMenuItem(qupath);
+		System.out.println("Hello depuis mon extension !");
+		new TileClickListener().registerClickListener();
 	}
 
 	/**
