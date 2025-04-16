@@ -25,11 +25,6 @@ import java.util.ResourceBundle;
 
 
 /**
- * This is a demo to provide a template for creating a new QuPath extension.
- * <p>
- * It doesn't do much - it just shows how to add a menu item and a preference.
- * See the code and comments below for more info.
- * <p>
  * <b>Important!</b> For your extension to work in QuPath, you need to make sure the name &amp; package
  * of this class is consistent with the file
  * <pre>
@@ -137,8 +132,8 @@ public class TileAnnotationExtension implements QuPathExtension, GitHubProject {
 	private void addPreferenceToPane(QuPathGUI qupath) {
         var propertyItem = new PropertyItemBuilder<>(enableExtensionProperty, Boolean.class)
 				.name(resources.getString("menu.enable"))
-				.category("Demo extension")
-				.description("Enable the demo extension")
+				.category("Tile annotation extension")
+				.description("Enable the extension")
 				.build();
 		qupath.getPreferencePane()
 				.getPropertySheet()
@@ -146,18 +141,6 @@ public class TileAnnotationExtension implements QuPathExtension, GitHubProject {
 				.add(propertyItem);
 	}
 
-
-	/**
-	 * Demo showing how a new command can be added to a QuPath menu.
-	 * @param qupath The QuPath GUI
-	 */
-	private void addMenuItem(QuPathGUI qupath) {
-		var menu = qupath.getMenu("Extensions>" + EXTENSION_NAME, true);
-		MenuItem menuItem = new MenuItem("My menu item");
-		menuItem.setOnAction(e -> createStage());
-		menuItem.disableProperty().bind(enableExtensionProperty.not());
-		menu.getItems().add(menuItem);
-	}
 
 	private void addTileMenuItem(QuPathGUI qupath) {
 		var menu = qupath.getMenu("Extensions>" + EXTENSION_NAME, true);
@@ -180,7 +163,7 @@ public class TileAnnotationExtension implements QuPathExtension, GitHubProject {
 		//imageView.setPreserveRatio(true);
 		button.setTooltip(new Tooltip("Tile Selection Mode"));
 
-		// Bind the property DemoExtension.tileModeActive
+		// Bind the property tileModeActive
 		button.selectedProperty().bindBidirectional(tileModeActive);
 
 		// Add to ToolBar

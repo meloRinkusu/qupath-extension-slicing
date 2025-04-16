@@ -9,11 +9,11 @@ plugins {
 
 // TODO: Configure your extension here (please change the defaults!)
 qupathExtension {
-    name = "qupath-extension-template"
+    name = "qupath-extension-tileannotation"
     group = "io.github.qupath"
     version = "0.1.0-SNAPSHOT"
-    description = "A simple QuPath extension"
-    automaticModule = "io.github.qupath.extension.template"
+    description = "A QuPath extension for tile level annotation"
+    automaticModule = "io.github.qupath.extension.tileannotation"
 }
 
 // TODO: Define your dependencies here
@@ -24,8 +24,6 @@ dependencies {
     shadow(libs.bundles.logging)
     shadow(libs.qupath.fxtras)
 
-    // If you aren't using Groovy, this can be removed
-    shadow(libs.bundles.groovy)
 
     // For testing
     testImplementation(libs.bundles.qupath)
@@ -39,11 +37,11 @@ repositories {
 }
 
 tasks.register<Copy>("copyJarToQuPath") {
-    doNotTrackState("Copying the jar file to QuPath extensions folder does not require state tracking") // Désactive le tracking d’état pour cette tâche
+    doNotTrackState("Copying the jar file to QuPath extensions folder does not require state tracking")
     dependsOn("shadowJar")
     from(layout.buildDirectory.dir("libs"))
     into("C:/Users/Admin/QuPath/v0.5/extensions/")
-    include("qupath-extension-template-0.1.0-SNAPSHOT.jar")
+    include("qupath-extension-tileannotation-0.1.0-SNAPSHOT.jar")
 }
 
 tasks.named("build") {
