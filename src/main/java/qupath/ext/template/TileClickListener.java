@@ -6,13 +6,16 @@ import javafx.scene.layout.StackPane;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 
-import qupath.ext.template.ui.InterfaceController;
+
 import qupath.lib.gui.QuPathGUI;
+import qupath.lib.gui.viewer.GridLines;
+import qupath.lib.gui.viewer.OverlayOptions;
 import qupath.lib.gui.viewer.QuPathViewer;
 import qupath.lib.gui.viewer.ViewerManager;
-import qupath.lib.gui.prefs.PathPrefs;
 
-import qupath.lib.objects.PathObject;
+
+import qupath.lib.images.servers.ImageServer;
+import qupath.lib.images.servers.PixelCalibration;
 import qupath.lib.objects.PathObjects;
 import qupath.lib.roi.ROIs;
 import qupath.lib.objects.classes.PathClassFactory;
@@ -25,13 +28,11 @@ public class TileClickListener {
     QuPathGUI qupath = QuPathGUI.getInstance();
     ViewerManager viewerManager = qupath.getViewerManager();
 
+    OverlayOptions overlayOptions = qupath.getOverlayOptions();
+    GridLines gridLines = overlayOptions.getGridLines();
 
-    //double tileHeight = 224;
-    double tileHeight = PathPrefs.gridSpacingYProperty().get();
-    //double tileLength = 224;
-    double tileWidth = PathPrefs.gridSpacingXProperty().get();
-
-
+    //double tileHeight = PathPrefs.gridSpacingYProperty().get();
+    //double tileWidth = PathPrefs.gridSpacingXProperty().get();
 
     public void registerClickListener() {
         QuPathViewer activeViewer = viewerManager.getActiveViewer();
@@ -39,32 +40,38 @@ public class TileClickListener {
             StackPane stackPane = (StackPane)activeViewer.getView();
             stackPane.addEventFilter(MouseEvent.MOUSE_CLICKED, e -> {
 
-                if (!DemoExtension.isTileModeActive())
+                if (!TileAnnotationExtension.isTileModeActive())
                     return;
 
                 double xPane = e.getX();
                 double yPane = e.getY();
 
-                // Convertir en coordonnées image
+                double tileWidth = gridLines.getSpaceX();
+                double tileHeight = gridLines.getSpaceY();
+
+                if (gridLines.useMicrons()){
+                    ImageServer<?> imageServer = qupath.getImageData().getServer();
+                    PixelCalibration cal = imageServer.getPixelCalibration();
+                    tileWidth /= cal.getPixelWidthMicrons();
+                    tileHeight /= cal.getPixelHeightMicrons();
+                }
+
+                // Convert to image coordinates
                 Point2D imagePoint = activeViewer.componentPointToImagePoint(xPane, yPane, null, true);
                 double xImage = imagePoint.getX();
                 double yImage = imagePoint.getY();
 
-                // Calculer les indices de la tuile
+                // Get tile indices
                 int tileX = (int) (xImage / tileWidth);
                 int tileY = (int) (yImage / tileHeight);
 
-                // Coordonnées du coin supérieur gauche de la tuile
+                // Tile's upper left corner coordinates
                 double tileOriginX = tileX * tileWidth;
                 double tileOriginY = tileY * tileHeight;
 
-                //System.out.println("Image point: " + xImage + ", " + yImage);
-                //System.out.println("Tile indices: (" + tileX + ", " + tileY + ")");
-                //System.out.println("Tile origin in image: " + tileOriginX + ", " + tileOriginY);
-
                 var tileRect = new Rectangle2D.Double(tileOriginX, tileOriginY, tileWidth, tileHeight);
 
-                // Chercher une annotation existante dans cette tuile
+                // Check if there already is a bounding box on this tile
                 var existing = getCurrentHierarchy().getFlattenedObjectList(null).stream()
                         .filter(anno -> anno.getROI() != null)
                         .filter(anno -> tileRect.intersects(
@@ -74,10 +81,9 @@ public class TileClickListener {
                                 anno.getROI().getBoundsHeight()))
                         .findFirst();
 
-                // Si on en trouve une, la sélectionner
+                // Select the box if it exists
                 if (existing.isPresent()) {
                     getCurrentHierarchy().getSelectionModel().setSelectedObject(existing.get());
-                    System.out.println("Annotation sélectionnée !");
                 }
                 else {
                         var roi = ROIs.createRectangleROI(tileOriginX, tileOriginY, tileWidth, tileHeight, null);
@@ -85,19 +91,16 @@ public class TileClickListener {
                         var annotation = PathObjects.createAnnotationObject(roi);
                         annotation.setPathClass(PathClassFactory.getPathClass("SelectedTile"));
 
-                        // Ajouter à la hiérarchie
+                        // Add new box to hierarchy
                         getCurrentHierarchy().addPathObject(annotation);
                         getCurrentHierarchy().getSelectionModel().setSelectedObject(annotation);
-                        System.out.println("Nouvelle annotation créée et sélectionnée !");
                     }
 
 
-                // Redessiner la vue
+                // Repaint the view
                 activeViewer.repaint();
 
             });
-        } else {
-            System.out.println("Pas de viewer actif");
         }
     }
 

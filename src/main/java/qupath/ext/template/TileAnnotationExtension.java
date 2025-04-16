@@ -5,8 +5,9 @@ import javafx.beans.property.IntegerProperty;
 import javafx.beans.property.Property;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.scene.Scene;
-import javafx.scene.control.CheckMenuItem;
-import javafx.scene.control.MenuItem;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.stage.Stage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,14 +36,14 @@ import java.util.ResourceBundle;
  *     /resources/META-INF/services/qupath.lib.gui.extensions.QuPathExtension
  * </pre>
  */
-public class DemoExtension implements QuPathExtension, GitHubProject {
+public class TileAnnotationExtension implements QuPathExtension, GitHubProject {
 	// TODO: add and modify strings to this resource bundle as needed
 	/**
 	 * A resource bundle containing all the text used by the extension. This may be useful for translation to other languages.
 	 * Note that this is optional and you can define the text within the code and FXML files that you use.
 	 */
 	private static final ResourceBundle resources = ResourceBundle.getBundle("qupath.ext.template.ui.strings");
-	private static final Logger logger = LoggerFactory.getLogger(DemoExtension.class);
+	private static final Logger logger = LoggerFactory.getLogger(TileAnnotationExtension.class);
 
 	/**
 	 * Display name for your extension
@@ -122,8 +123,8 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 		isInstalled = true;
 		addPreferenceToPane(qupath);
 		//addMenuItem(qupath);
-		addTuileMenuItem(qupath);
-		System.out.println("Hello depuis mon extension !");
+		addTileMenuItem(qupath);
+		addToolbarButton(qupath);
 		new TileClickListener().registerClickListener();
 	}
 
@@ -158,10 +159,10 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 		menu.getItems().add(menuItem);
 	}
 
-	private void addTuileMenuItem(QuPathGUI qupath) {
+	private void addTileMenuItem(QuPathGUI qupath) {
 		var menu = qupath.getMenu("Extensions>" + EXTENSION_NAME, true);
-		// Toggle menu item pour le mode tuile
-		CheckMenuItem tileModeMenuItem = new CheckMenuItem("Activer Mode Tuile");
+		// Toggle menu item for tile selection mode
+		CheckMenuItem tileModeMenuItem = new CheckMenuItem("Activate Tile Selection Mode");
 		tileModeMenuItem.selectedProperty().bindBidirectional(tileModeActive);
 		tileModeMenuItem.disableProperty().bind(enableExtensionProperty.not());
 
@@ -169,6 +170,23 @@ public class DemoExtension implements QuPathExtension, GitHubProject {
 		menu.getItems().add(tileModeMenuItem);
 	}
 
+	private void addToolbarButton(QuPathGUI qupath) {
+		// Create button
+		var button = new ToggleButton();
+		ImageView imageView = new ImageView(new Image(getClass().getResourceAsStream("/qupath/ext/template/ui/icons/tile-mode.png")));
+		button.setGraphic(imageView);
+		//imageView.setFitWidth(16);
+		//imageView.setFitHeight(16);
+		//imageView.setPreserveRatio(true);
+		button.setTooltip(new Tooltip("Tile Selection Mode"));
+
+		// Bind the property DemoExtension.tileModeActive
+		button.selectedProperty().bindBidirectional(tileModeActive);
+
+		// Add to ToolBar
+		ToolBar toolBar = qupath.getToolBar();
+		toolBar.getItems().add(button);
+	}
 
 
 
